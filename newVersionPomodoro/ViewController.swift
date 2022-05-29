@@ -2,6 +2,8 @@ import UIKit
 
 class ViewController: UIViewController {
     
+    static var isWorkTime = true
+    static var isStarted = true
     static var color = UIColor.orange
     
     let pomodoroLabel: UILabel = {
@@ -38,15 +40,84 @@ class ViewController: UIViewController {
         return button
     }()
     
+    var timer = Timer()
+    var minutesDurationTimer = 5
+    var secondsDurationTimer = 0
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
         setConstrains()
-        
+        timerButton.addTarget(self, action: #selector(timerButtonTapped), for: .touchUpInside)
+
     }
     
     func setupView() {
         view.backgroundColor = UIColor.white
+    }
+    
+    @objc func timerButtonTapped() {
+        
+        if ViewController.isStarted {
+            timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(timerAction), userInfo: nil, repeats: true)
+            ViewController.isStarted = false
+            timerButton.setBackgroundImage(UIImage(systemName: "pause")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal), for: .normal)
+        } else {
+            timer.invalidate()
+            ViewController.isStarted = true
+            timerButton.setBackgroundImage(UIImage(systemName: "play")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal), for: .normal)
+        }
+    }
+    @objc func timerAction() {
+        
+        if secondsDurationTimer == 0 {
+            secondsDurationTimer = 60
+            minutesDurationTimer -= 1
+        }
+        
+        secondsDurationTimer -= 1
+        switch (minutesDurationTimer, secondsDurationTimer) {
+        case (10..., 10...):
+            timerLabel.text = "\(minutesDurationTimer):\(secondsDurationTimer)"
+        case (0...10, 10...):
+            timerLabel.text = "0\(minutesDurationTimer):\(secondsDurationTimer)"
+        case (10..., 0...10):
+            timerLabel.text = "\(minutesDurationTimer):0\(secondsDurationTimer)"
+        case (0...10, 0...10):
+            timerLabel.text = "0\(minutesDurationTimer):0\(secondsDurationTimer)"
+        default:
+            if ViewController.isWorkTime == true {
+                isRest()
+            } else {
+                isWork()
+            }
+        }
+    }
+    
+    private func isRest() {
+        
+        minutesDurationTimer = 5
+        secondsDurationTimer = 0
+        
+        ViewController.color = UIColor.systemGreen
+        
+        timerLabel.textColor = ViewController.color
+        
+        timerButton.setBackgroundImage(UIImage(systemName: "pause")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal), for: .normal)
+        ViewController.isWorkTime = false
+    }
+    
+    func isWork() {
+        
+        minutesDurationTimer = 25
+        secondsDurationTimer = 0
+        
+        ViewController.color = UIColor.systemRed
+        
+        timerLabel.textColor = ViewController.color
+        
+        timerButton.setBackgroundImage(UIImage(systemName: "pause")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal), for: .normal)
+        ViewController.isWorkTime = true
     }
     
 }
